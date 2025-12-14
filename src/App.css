@@ -1,65 +1,157 @@
-/* Estilos globales actualizados */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap");
+
+:root {
+  --neon-cyan: #00f3ff;
+  --neon-purple: #bc13fe;
+  --deep-bg: #050505;
+  --surface-bg: #111111;
+  --glass-bg: rgba(20, 20, 20, 0.7);
+  --text-primary: #e0e0e0;
+  --font-main: "Rajdhani", sans-serif;
+  --font-display: "Steelar", "Orbitron", sans-serif;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
-    "Droid Sans", "Helvetica Neue", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f8f9fa;
+  background-color: var(--deep-bg);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  background-image: radial-gradient(
+      circle at 15% 50%,
+      rgba(188, 19, 254, 0.08),
+      transparent 25%
+    ),
+    radial-gradient(circle at 85% 30%, rgba(0, 243, 255, 0.08), transparent 25%);
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-html,
-body,
-#root {
-  height: 100%;
-}
-
-main {
-  min-height: calc(100vh - 80px);
-}
-
-/* Estilos globales para Bootstrap */
+h1,
+h2,
+h3,
+h4,
+h5,
+.navbar-brand,
 .btn {
-  font-weight: 600;
-  transition: all 0.3s ease;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
-.btn:hover {
-  transform: translateY(-2px);
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--deep-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--neon-purple);
+  border-radius: 4px;
 }
 
 .card {
-  border: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--surface-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.3s ease;
 }
 
-.form-control {
-  border-radius: 4px;
-  border: 1px solid #bdc3c7;
+.form-control,
+.form-select {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(0, 243, 255, 0.3) !important;
+  color: white !important;
 }
 
 .form-control:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+  box-shadow: 0 0 10px var(--neon-cyan) !important;
 }
 
-.alert {
+.btn-primary {
+  background: linear-gradient(45deg, var(--neon-purple), #7a00ff);
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  font-weight: bold;
+  clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
 }
 
-.spinner-border {
-  color: #3498db;
+.btn-primary:hover {
+  background: linear-gradient(45deg, #7a00ff, var(--neon-purple));
+  box-shadow: 0 0 15px var(--neon-purple);
+  transform: translateY(-2px);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  main {
-    min-height: calc(100vh - 60px);
-  }
+.btn-outline-secondary {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  border-radius: 0;
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--neon-cyan);
+  color: black;
+  box-shadow: 0 0 15px var(--neon-cyan);
+}
+
+.table {
+  color: white !important;
+}
+.table thead th {
+  background-color: #222 !important;
+  color: var(--neon-cyan) !important;
+  border-bottom: 2px solid var(--neon-cyan);
+}
+.table td {
+  border-color: #333;
+}
+
+.modal-content {
+  background-color: #1a1a1a;
+  border: 1px solid var(--neon-cyan);
+  color: white;
+}
+.list-group-item {
+  background-color: transparent;
+  color: white;
+  border-color: #333;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.pagination {
+  justify-content: center;
+  margin-top: 2rem;
+  gap: 5px;
+}
+
+.page-item .page-link {
+  background-color: transparent;
+  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  border-radius: 0 !important;
+  font-family: var(--font-display);
+  transition: all 0.3s ease;
+}
+
+.page-item .page-link:hover {
+  background-color: rgba(0, 243, 255, 0.2);
+  color: white;
+  box-shadow: 0 0 10px var(--neon-cyan);
+}
+
+.page-item.active .page-link {
+  background-color: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+  color: black;
+  font-weight: bold;
+  box-shadow: 0 0 15px var(--neon-cyan);
+}
+
+.page-item.disabled .page-link {
+  background-color: transparent;
+  border-color: #333;
+  color: #555;
 }
