@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button, Spinner } from "react-bootstrap";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -9,6 +9,11 @@ export default function FeaturedShowcase() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  
+  // Estado para el control táctil del swipe
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
   const API_URL = "https://693df848f55f1be793040fe9.mockapi.io/api/v1/products";
 
   useEffect(() => {
@@ -19,8 +24,9 @@ export default function FeaturedShowcase() {
           ...p,
           id: p.id || (index + 1).toString(),
           price: Number(p.price) || 0,
-          thumbnail: p.image || "https://via.placeholder.com/300",
+          thumbnail: p.image || p.images?.[0] || "https://via.placeholder.com/300/111/00f3ff?text=CyberShop",
           category: p.category || "General",
+          image: p.image || p.thumbnail || p.images?.[0] || "https://via.placeholder.com/300/111/00f3ff?text=CyberShop",
         }));
 
         const topTier = normalizedData
@@ -35,6 +41,14 @@ export default function FeaturedShowcase() {
         setLoading(false);
       });
   }, []);
+  
+  // --- LÓGICA DE ROTACIÓN AUTOMÁTICA (Ajustado a 8 segundos) ---
+  useEffect(() => {
+    if (featuredProducts.length > 0) {
+      const interval = setInterval(nextSlide, 8000); // CAMBIO: 8 segundos
+      return () => clearInterval(interval); 
+    }
+  }, [featuredProducts, currentIndex]);
 
   const nextSlide = () => {
     setCurrentIndex((prev) =>
@@ -47,6 +61,33 @@ export default function FeaturedShowcase() {
       prev === 0 ? featuredProducts.length - 1 : prev - 1
     );
   };
+  
+  // --- LÓGICA DE SWIPE TÁCTIL (MOBILE) ---
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart === 0 || touchEnd === 0) return;
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50; 
+
+    if (distance > minSwipeDistance) {
+      // Swipe hacia la izquierda (Next Slide)
+      nextSlide();
+    } else if (distance < -minSwipeDistance) {
+      // Swipe hacia la derecha (Prev Slide)
+      prevSlide();
+    }
+    
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
 
   if (loading)
     return (
@@ -55,7 +96,6 @@ export default function FeaturedShowcase() {
       </div>
     );
 
-  // Si no hay productos destacados, no renderizamos nada
   if (featuredProducts.length === 0) return null;
 
   const product = featuredProducts[currentIndex];
@@ -64,11 +104,15 @@ export default function FeaturedShowcase() {
     <section
       style={{
         position: "relative",
-        padding: "80px 0",
+        padding: "50px 0", // AJUSTE: Menos padding vertical
         background: "radial-gradient(circle at 70% 50%, #1a1a2e, #050505)",
         overflow: "hidden",
         borderBottom: "1px solid var(--neon-purple)",
       }}
+      // Agregar eventos táctiles a la sección principal para el swipe
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <div
         style={{
@@ -89,7 +133,7 @@ export default function FeaturedShowcase() {
       </div>
 
       <Container style={{ position: "relative", zIndex: 2 }}>
-        <div className="d-flex justify-content-between align-items-center mb-5">
+        <div className="d-flex justify-content-between align-items-center mb-4">
           <h2
             style={{
               fontFamily: "var(--font-display)",
@@ -97,12 +141,14 @@ export default function FeaturedShowcase() {
               letterSpacing: "2px",
               borderLeft: "4px solid var(--neon-cyan)",
               paddingLeft: "15px",
+              fontSize: '1.5rem', // Ligeramente más pequeño en mobile
             }}
           >
             PRODUCTOS DESTACADOS
           </h2>
 
-          <div className="d-flex gap-2">
+          {/* Controles visibles solo en desktop */}
+          <div className="d-none d-md-flex gap-2">
             <Button
               variant="outline-light"
               onClick={prevSlide}
@@ -128,9 +174,11 @@ export default function FeaturedShowcase() {
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.5 }}
           >
-            <Row className="align-items-center">
-              {/* INFO */}
-              <Col lg={5} className="mb-5 mb-lg-0">
+            {/* CAMBIO: Usamos flex-column-reverse en mobile para poner la imagen abajo */}
+            <Row className="align-items-center flex-column-reverse flex-lg-row"> 
+              
+              {/* INFO (COLUMNA 1 en mobile) */}
+              <Col lg={5} className="mt-4 mt-lg-0 text-center text-lg-start"> 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -157,15 +205,15 @@ export default function FeaturedShowcase() {
                   </div>
 
                   <h1
-                    className="display-4 text-white fw-bold my-3"
-                    style={{ fontFamily: "var(--font-display)" }}
+                    className="text-white fw-bold my-3"
+                    style={{ fontFamily: "var(--font-display)", fontSize: '2rem' }} // AJUSTE: Tamaño de fuente
                   >
                     {product.name || product.title}
                   </h1>
 
                   <p
                     className="lead text-light opacity-75 mb-4"
-                    style={{ fontSize: "1rem" }}
+                    style={{ fontSize: "0.9rem" }} // AJUSTE: Tamaño de descripción
                   >
                     {product.description}
                   </p>
@@ -175,6 +223,7 @@ export default function FeaturedShowcase() {
                     style={{
                       color: "var(--neon-cyan)",
                       textShadow: "0 0 15px rgba(0, 243, 255, 0.5)",
+                      fontSize: '1.8rem' // AJUSTE: Tamaño de precio
                     }}
                   >
                     {formatARS(product.price)}
@@ -188,8 +237,8 @@ export default function FeaturedShowcase() {
                         background: "var(--neon-purple)",
                         color: "white",
                         border: "none",
-                        padding: "15px 40px",
-                        fontSize: "1.1rem",
+                        padding: "12px 30px", // AJUSTE: Menos padding en el botón
+                        fontSize: "1rem",
                         fontWeight: "bold",
                         borderRadius: "0",
                         fontFamily: "var(--font-display)",
@@ -202,28 +251,29 @@ export default function FeaturedShowcase() {
                 </motion.div>
               </Col>
 
-              {/* IMAGEN */}
+              {/* IMAGEN (COLUMNA 2 en mobile) */}
               <Col lg={7} className="text-center position-relative">
                 <motion.div
-                  animate={{ y: [0, -20, 0] }}
+                  animate={{ y: [0, -10, 0] }} // Menos movimiento para mobile
                   transition={{
                     duration: 4,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
                 >
+                  {/* AURAS Y BRILLOS NEÓN */}
                   <div
                     style={{
                       position: "absolute",
                       top: "50%",
                       left: "50%",
                       transform: "translate(-50%, -50%)",
-                      width: "350px",
-                      height: "350px",
+                      width: "80%", // Ocupa menos espacio
+                      height: "80%",
                       background:
                         "radial-gradient(circle, rgba(0,243,255,0.2) 0%, transparent 70%)",
                       zIndex: -1,
-                      filter: "blur(40px)",
+                      filter: "blur(30px)", // Menos blur
                     }}
                   ></div>
 
@@ -231,15 +281,16 @@ export default function FeaturedShowcase() {
                     src={product.image || product.thumbnail}
                     alt={product.name}
                     style={{
+                      width: "auto",
+                      maxHeight: "350px", // AJUSTE CLAVE: Máxima altura en móvil
                       maxWidth: "100%",
-                      maxHeight: "500px",
-                      filter: "drop-shadow(0 20px 30px rgba(0,0,0,0.6))",
                       objectFit: "contain",
+                      filter: "drop-shadow(0 0 15px rgba(0, 243, 255, 0.2))", 
                     }}
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src =
-                        "https://via.placeholder.com/500?text=No+Image";
+                        "https://via.placeholder.com/350?text=No+Image";
                     }}
                   />
                 </motion.div>
@@ -248,17 +299,20 @@ export default function FeaturedShowcase() {
           </motion.div>
         </AnimatePresence>
 
-        <div className="d-flex gap-2 mt-5">
+        {/* INDICADORES DE POSICIÓN (DOTS) */}
+        <div className="d-flex justify-content-center justify-content-lg-start gap-2 mt-4 mt-lg-5">
           {featuredProducts.map((_, idx) => (
             <div
               key={idx}
               onClick={() => setCurrentIndex(idx)}
               style={{
-                height: "4px",
+                height: "6px",
                 width: idx === currentIndex ? "40px" : "15px",
                 background: idx === currentIndex ? "var(--neon-cyan)" : "#333",
                 cursor: "pointer",
+                borderRadius: "3px",
                 transition: "all 0.3s ease",
+                boxShadow: idx === currentIndex ? "0 0 10px var(--neon-cyan)" : "none",
               }}
             />
           ))}

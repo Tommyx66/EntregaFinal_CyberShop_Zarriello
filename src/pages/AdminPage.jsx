@@ -84,25 +84,43 @@ const AdminPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validaciones
-    if (!formData.name || !formData.price || !formData.category) {
+    if (!formData.name.trim()) {
+      return toast.warning("⚠️ El nombre del producto es obligatorio.", {
+        theme: "dark",
+      });
+    }
+
+    const priceValue = Number(formData.price);
+    if (isNaN(priceValue) || priceValue <= 0) {
       return toast.warning(
-        "⚠️ Faltan datos: Nombre, Precio y Categoría son obligatorios",
+        "⚠️ El precio debe ser un número positivo mayor a cero.",
         { theme: "dark" }
       );
     }
-    if (formData.description.length < 5) {
-      return toast.warning("⚠️ La descripción es muy corta", { theme: "dark" });
+
+    if (!formData.category) {
+      return toast.warning("⚠️ Debe seleccionar una categoría válida.", {
+        theme: "dark",
+      });
+    }
+
+    if (formData.description.trim().length < 10) {
+      return toast.warning(
+        "⚠️ La descripción debe tener al menos 10 caracteres.",
+        { theme: "dark" }
+      );
     }
 
     const method = editingId ? "PUT" : "POST";
     const url = editingId ? `${API_URL}/${editingId}` : API_URL;
 
     const productData = {
-      name: formData.name,
-      price: Number(formData.price),
-      description: formData.description,
-      image: formData.image || "https://via.placeholder.com/300",
+      name: formData.name.trim(),
+      price: priceValue,
+      description: formData.description.trim(),
+      image:
+        formData.image.trim() ||
+        "https://via.placeholder.com/300/111/00f3ff?text=CyberShop",
       category: formData.category,
     };
 
@@ -142,6 +160,7 @@ const AdminPage = () => {
         "⚠️ ¿CONFIRMAR ELIMINACIÓN? Esta acción no se puede deshacer."
       )
     ) {
+      setLoading(true);
       fetch(`${API_URL}/${id}`, { method: "DELETE" })
         .then((res) => {
           if (res.ok) {
@@ -153,7 +172,8 @@ const AdminPage = () => {
         })
         .catch(() =>
           toast.error("Error al eliminar el producto", { theme: "dark" })
-        );
+        )
+        .finally(() => setLoading(false));
     }
   };
 
@@ -163,6 +183,13 @@ const AdminPage = () => {
     border: "1px solid rgba(0, 243, 255, 0.2)",
     borderRadius: "0px",
     color: "white",
+  };
+
+  const neonInputStyle = {
+    borderRadius: 0,
+    backgroundColor: "#111",
+    color: "var(--neon-cyan)",
+    border: "1px solid #444",
   };
 
   return (
@@ -247,7 +274,7 @@ const AdminPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
                       }
-                      style={{ borderRadius: 0 }}
+                      style={neonInputStyle}
                     />
                   </Form.Group>
 
@@ -264,7 +291,7 @@ const AdminPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, price: e.target.value })
                       }
-                      style={{ borderRadius: 0 }}
+                      style={neonInputStyle}
                     />
                   </Form.Group>
 
@@ -281,7 +308,7 @@ const AdminPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, image: e.target.value })
                       }
-                      style={{ borderRadius: 0 }}
+                      style={neonInputStyle}
                     />
                   </Form.Group>
 
@@ -291,6 +318,7 @@ const AdminPage = () => {
                     >
                       CATEGORÍA
                     </Form.Label>
+
                     <Form.Select
                       value={formData.category}
                       onChange={(e) =>
@@ -298,23 +326,38 @@ const AdminPage = () => {
                       }
                       style={{
                         borderRadius: 0,
-                        backgroundColor: "#222",
-                        color: "white",
+
+                        backgroundColor: "#111", // Fondo oscuro del selector
+
+                        color: "white", // Texto seleccionado en blanco
+
                         border: "1px solid #444",
+
+                        WebkitAppearance: "none",
+
+                        appearance: "none",
                       }}
                     >
+                      {/* El placeholder DEBE tener texto visible (negro) */}
+
                       <option value="" style={{ color: "black" }}>
                         SELECCIONAR...
                       </option>
+
+                      {/* Las demás opciones también deben tener color de texto explícito */}
+
                       <option value="consolas" style={{ color: "black" }}>
                         CONSOLAS
                       </option>
+
                       <option value="videojuegos" style={{ color: "black" }}>
                         VIDEOJUEGOS
                       </option>
+
                       <option value="perifericos" style={{ color: "black" }}>
                         PERIFÉRICOS
                       </option>
+
                       <option value="componentes" style={{ color: "black" }}>
                         COMPONENTES
                       </option>
@@ -338,7 +381,7 @@ const AdminPage = () => {
                           description: e.target.value,
                         })
                       }
-                      style={{ borderRadius: 0 }}
+                      style={neonInputStyle}
                     />
                   </Form.Group>
 
@@ -369,9 +412,10 @@ const AdminPage = () => {
                       <Button
                         variant="outline-light"
                         onClick={handleCancelEdit}
-                        style={{ borderRadius: "0" }}
+                        style={{ borderRadius: "0", border: "1px solid #777" }}
+                        disabled={loading}
                       >
-                        CANCELAR
+                        <FaTimes className="me-2" /> CANCELAR
                       </Button>
                     )}
                   </div>
@@ -423,10 +467,13 @@ const AdminPage = () => {
                             PRODUCTO
                           </th>
                           <th style={{ color: "var(--neon-cyan)" }}>CAT</th>
-                          <th style={{ color: "var(--neon-cyan)" }}>PRECIO</th>
+                          <th style={{ color: "var(--neon-cyan)" }}>PRECIO (en USD)</th>
                           <th
                             className="text-end"
-                            style={{ color: "var(--neon-cyan)" }}
+                            style={{
+                              color: "var(--neon-cyan)",
+                              minWidth: "120px",
+                            }}
                           >
                             ACCIONES
                           </th>
@@ -446,6 +493,7 @@ const AdminPage = () => {
                                   height: "40px",
                                   objectFit: "cover",
                                   borderRadius: "4px",
+                                  backgroundColor: "#444",
                                 }}
                                 onError={(e) => {
                                   e.target.src =
@@ -480,12 +528,17 @@ const AdminPage = () => {
                             >
                               ${prod.price}
                             </td>
-                            <td className="text-end">
+                            <td className="text-end text-nowrap">
                               <Button
                                 variant="outline-info"
                                 size="sm"
                                 className="me-2 rounded-0"
                                 onClick={() => handleEditClick(prod)}
+                                style={{
+                                  border: "1px solid var(--neon-cyan)",
+                                  color: "var(--neon-cyan)",
+                                }}
+                                disabled={loading}
                               >
                                 <FaEdit />
                               </Button>
@@ -494,6 +547,7 @@ const AdminPage = () => {
                                 size="sm"
                                 className="rounded-0"
                                 onClick={() => handleDelete(prod.id)}
+                                disabled={loading}
                               >
                                 <FaTrash />
                               </Button>
@@ -503,6 +557,14 @@ const AdminPage = () => {
                       </tbody>
                     </Table>
                   </div>
+                )}
+                {!loading && products.length === 0 && (
+                  <Alert
+                    variant="info"
+                    className="text-center bg-transparent border-info text-info"
+                  >
+                    No hay productos en el inventario. ¡Crea el primero!
+                  </Alert>
                 )}
               </Card.Body>
             </Card>
